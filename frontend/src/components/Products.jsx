@@ -263,6 +263,7 @@ const Products = () => {
                   <Form.Control
                     type="file"
                     accept="image/*"
+                    required
                     onChange={handleImageChange}
                   />
                   {selectedImage && (

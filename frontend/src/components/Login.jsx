@@ -7,6 +7,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [validated, setValidated] = useState(false); // State for form validation
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,17 +19,23 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
-        username,
-        password,
-      });
-      localStorage.setItem('token', response.data.token);
-      navigate('/categories'); 
-      window.location.reload(); 
-    } catch (err) {
-      setError('Invalid username or password');
+    const form = e.currentTarget;
+    if (form.checkValidity() === false) {
+      e.stopPropagation();
+    } else {
+      try {
+        const response = await axios.post('http://localhost:5000/api/auth/login', {
+          username,
+          password,
+        });
+        localStorage.setItem('token', response.data.token);
+        navigate('/categories');
+        window.location.reload();
+      } catch (err) {
+        setError('Invalid username or password');
+      }
     }
+    setValidated(true); // Update validation state
   };
 
   return (
@@ -36,16 +43,23 @@ const Login = () => {
       <Row className="justify-content-md-center">
         <Col xs={12} md={6}>
           <h2>Login</h2>
-          <Form onSubmit={handleLogin}>
+          <Form noValidate validated={validated} onSubmit={handleLogin}>
             <Form.Group controlId="formUsername" className="mb-3">
               <Form.Label>Username</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setError(''); // Clear error on input change
+                }}
                 required
+                isInvalid={validated && !username} // Show invalid state
               />
+              <Form.Control.Feedback type="invalid">
+                Please enter your username.
+              </Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group controlId="formPassword" className="mb-3">
@@ -54,9 +68,16 @@ const Login = () => {
                 type="password"
                 placeholder="Enter password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError(''); // Clear error on input change
+                }}
                 required
+                isInvalid={validated && !password} // Show invalid state
               />
+              <Form.Control.Feedback type="invalid">
+                Please enter your password.
+              </Form.Control.Feedback>
             </Form.Group>
 
             <Button variant="primary" type="submit" className="w-100">

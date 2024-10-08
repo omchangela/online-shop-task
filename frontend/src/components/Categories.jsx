@@ -10,6 +10,7 @@ const Categories = () => {
   const [subCategories, setSubCategories] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [validated, setValidated] = useState(false); // Add validation state
 
   const token = localStorage.getItem('token');
 
@@ -34,7 +35,15 @@ const Categories = () => {
 
   // Event handlers
   const handleAddCategory = async (e) => {
+    const form = e.currentTarget;
     e.preventDefault();
+    setValidated(true); // Set validated to true on submit
+
+    if (form.checkValidity() === false) {
+      e.stopPropagation();
+      return;
+    }
+
     try {
       const subCategoryArray = subCategories.split(',').map((sub) => sub.trim());
       const response = await axios.post(
@@ -85,7 +94,7 @@ const Categories = () => {
         <Col>
           <h2>Categories</h2>
           {/* Category form */}
-          <Form onSubmit={handleAddCategory}>
+          <Form noValidate validated={validated} onSubmit={handleAddCategory}>
             <Row>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formCategoryName" className="mb-3">
@@ -96,18 +105,27 @@ const Categories = () => {
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
                     required
+                    isInvalid={validated && !newCategory} // Add validation
                   />
+                  <Form.Control.Feedback type="invalid">
+                    Please enter a category name.
+                  </Form.Control.Feedback>
                 </Form.Group>
               </Col>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formSubCategories" className="mb-3">
-                  <Form.Label>Sub Categories (comma-separated)</Form.Label>
+                  <Form.Label>Sub Categories</Form.Label>
                   <Form.Control
                     type="text"
                     placeholder="Enter subcategories"
                     value={subCategories}
+                    required
                     onChange={(e) => setSubCategories(e.target.value)}
+                    isInvalid={validated && !subCategories} // Add validation
                   />
+                  <Form.Control.Feedback type="invalid">
+                    Please enter at least one subcategory.
+                  </Form.Control.Feedback>
                 </Form.Group>
               </Col>
             </Row>
